@@ -1,0 +1,23 @@
+# Musicflow API - dependencias directas (versiones fijadas para reproducibilidad)
+
+# Framework web y servidor ASGI
+fastapi==0.142.2
+uvicorn==0.54.0
+python-multipart==0.0.32   # requerido por FastAPI para OAuth2PasswordRequestForm (login por formulario)
+
+# Base de datos y migraciones
+sqlalchemy==2.1.3
+psycopg[binary]==3.3.6
+alembic==1.20.0
+
+# Configuración y validación
+pydantic-settings==2.15.0
+email-validator==2.3.0     # requerido por Pydantic para el tipo EmailStr
+
+# Seguridad
+pyjwt==2.15.1
+argon2-cffi==25.1.0
+
+# Pruebas
+pytest==9.1.1
+httpx==0.28.1
