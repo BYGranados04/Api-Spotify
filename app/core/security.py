@@ -1,0 +1,49 @@
+"""Funciones de seguridad: hash de contraseñas (Argon2) y tokens JWT."""
+
+from datetime import datetime, timedelta, timezone
+
+import jwt
+from argon2 import PasswordHasher
+from argon2.exceptions import InvalidHashError, VerificationError
+
+from app.core.config import settings
+
+_password_hasher = PasswordHasher()
+
+
+def hash_password(password: str) -> str:
+    """Devuelve el hash Argon2 de la contraseña (incluye sal aleatoria)."""
+    return _password_hasher.hash(password)
+
+
+def verify_password(password: str, hashed_password: str) -> bool:
+    """Comprueba una contraseña en texto plano contra su hash."""
+    try:
+        return _password_hasher.verify(hashed_password, password)
+    except (VerificationError, InvalidHashError):
+        return False
+
+
+def create_access_token(user_id: int) -> str:
+    """Genera un JWT firmado que identifica al usuario y expira."""
+    now = datetime.now(timezone.utc)
+    payload = {
+        "sub": str(user_id),
+        "iat": now,
+        "exp": now + timedelta(minutes=settings.access_token_expire_minutes),
+    }
+    return jwt.encode(payload, settings.jwt_secret_key, algorithm=settings.jwt_algorithm)
+
+
+def decode_access_token(token: str) -> int | None:
+    """Valida firma y expiración del JWT. Devuelve el id del usuario o None."""
+    try:
+        payload = jwt.decode(
+            token,
+            settings.jwt_secret_key,
+            algorithms=[settings.jwt_algorithm],
+            options={"require": ["exp", "sub"]},
+        )
+        return int(payload["sub"])
+    except (jwt.InvalidTokenError, ValueError):
+        return None
